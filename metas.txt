@@ -1,0 +1,46 @@
+3. Serviços da aplicação
+    ->Cadastro de usuário; (Mudar ainda para não deixar CPF e CNPJ vazios, apenas um deles)
+    ->Cadastro de administrador;
+    ->Cadastro de navios;
+    ->Cadastro de portos;
+    ->Criação/Marcação de viagens;
+    ->Finalização de viagens;
+    Aluguel de lugares para containers em viagens;
+    ->Histórico de viagens;
+    ->Histórico de aluguéis;
+    ->Verificar frota;
+4. Transações
+    ->Cadastrar usuário: o usuário se cadastra colocando as informações de nome,
+    CPF/CNPJ e colocando seu email para contato.
+    ->Cadastrar navio: o administrador adiciona mais um navio à frota, adicionando
+    nome do navio, id, toneladas suportadas, status e localização.
+    ->Cadastro de porto: o administrador adiciona mais um porto com sua
+    localização e tipo.
+
+    Agendar viagem (alugar lugar(es)): o usuário cadastrado seleciona origem,
+    destino, data de partida com horário (que estiver disponível) e as informações
+    do container como código, peso, conteúdo, notas fiscais e tipo, o campo de
+    chegada deve sinalizar que a viagem ainda não foi finalizada, é verificado se
+    a vaga para o tipo do container existe.
+    
+    Adicionar container a viagem: no momento que o usuário agendar uma
+    viagem o id do container será adicionado a aquela viagem.
+    
+    Criar viagem: o administrador cria uma rota com origem, destino e horário de
+    saída e seleciona qual o navio, verifica se o navio está disponível.
+    Viagem concluída: quando o navio chegar em seu destino o administrador
+    encerra a viagem informando a data e o horário de chegada.
+    
+    Verificar se existe vaga: verifica se existe espaço disponível para o tipo de
+    container específico usado ou se ainda é possível adicionar a carga dele ao
+    navio.
+    
+    ->Verificar se o navio está disponível: verifica se o navio desejado não estará
+    em viagem no data de início da rota e se ele está no porto de origem.
+    
+    ->Verificar frota: mostra o status e localização de todos os navios da frota.
+    
+    ->Ver histórico de aluguéis: o usuário cadastrado vê o histórico de todas as
+    viagens que ele já realizou aluguéis.
+    
+    Ver histórico de viagens : o administrador vê o histórico de todas as viagens.
