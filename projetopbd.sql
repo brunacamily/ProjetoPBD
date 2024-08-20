@@ -63,6 +63,104 @@ CREATE TABLE transporta(
 	FOREIGN KEY (id_viagem) REFERENCES viagem(id_viagem),
 	FOREIGN KEY (id_container) REFERENCES container(id_container));
 
+-- PROCEDURE
+CREATE OR REPLACE PROCEDURE proc_pesos_navio(
+    IN search_id INTEGER,
+    OUT peso INTEGER
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    SELECT b.toneladas INTO peso 
+    FROM companhia.viagem a
+    INNER JOIN companhia.navio b
+    ON b.id_navio = a.id_navio 
+    WHERE a.id_viagem = search_id;
+END;
+$$;
+
+--FUNCTION proc_peso_containers()
+CREATE OR REPLACE FUNCTION proc_peso_containers()
+RETURNS TRIGGER AS $$
+DECLARE
+    peso_total_containers INT:= 0;
+    peso_navio INT:= 0;
+    peso_container_novo INT:= 0;
+BEGIN
+    -- Calcula o peso total dos containers já associados à viagem
+    SELECT COALESCE(SUM(b.peso), 0) INTO peso_total_containers
+    FROM companhia.transporta a
+    INNER JOIN companhia.container b ON a.id_container = b.id_container
+    AND a.id_viagem = NEW.id_viagem;
+        
+    -- Obtém o peso suportado pelo navio associado à viagem
+    SELECT d.toneladas INTO peso_navio
+    FROM companhia.viagem c
+    INNER JOIN companhia.navio d ON c.id_navio = d.id_navio
+    WHERE c.id_viagem = NEW.id_viagem;
+    
+    -- Obtém o peso do container que será inserido na viagem
+    SELECT e.peso INTO peso_container_novo
+    FROM companhia.container e
+    WHERE e.id_container = NEW.id_container;
+  
+    -- Verifica se o peso total dos containers mais o novo container excede o peso suportado pelo navio
+    IF (peso_total_containers + peso_container_novo) > peso_navio THEN
+        RAISE EXCEPTION 'Peso total dos containers (%s) excede o peso suportado pelo navio (%s), container não adicionado a viagem', (peso_total_containers + peso_container_novo), peso_navio;
+		RETURN OLD;
+	END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+--FIM FUNCTION
+
+--TRIGGER para function acima
+CREATE OR REPLACE TRIGGER trg_peso_viagem
+BEFORE INSERT
+INTO companhia.transporta
+FOR EACH ROW
+EXECUTE FUNCTION proc_peso_containers()
+--FIM TRIGGER
+
+--PROCEDURE proc_conta_containers()
+CREATE OR REPLACE PROCEDURE proc_conta_containers(
+    p_id_viagem INT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    num_containers INT;
+BEGIN
+    -- Contar o número de containers para a viagem especificada
+    SELECT COUNT(*) INTO num_containers
+    FROM companhia.transporta
+    WHERE id_viagem = p_id_viagem;
+
+    -- Atualizar o número de containers para a viagem especificada
+    UPDATE companhia.transporta
+    SET num_container = num_containers
+    WHERE id_viagem = p_id_viagem;
+END;
+$$;
+--FIM PROCEDURE
+
+--TRIGGER para depois que for inserido na tabela transporta
+CREATE TRIGGER trg_num_container
+AFTER INSERT 
+ON companhia.transporta
+FOR EACH ROW 
+EXECUTE FUNCTION func_trg_num_container();
+
+--FUNCTION chama procedure proc_conta_containers
+CREATE OR REPLACE FUNCTION func_trg_num_container()
+RETURNS TRIGGER AS $$
+BEGIN
+	CALL proc_conta_containers(NEW.id_viagem);
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+--FIM FUNCTION
+
 -- Inserindo dados na tabela administrador
 INSERT INTO administrador VALUES (3, 'Julia', '4321');
 insert into administrador values (01,'Maria', 1234);
