@@ -42,7 +42,7 @@ def listar_viagens_nao_comecadas(cursor):
     for row in rows:
         info = row[0].replace('(','').replace(')','')
         data_list = info.split(',',5)
-        print(f"Viagem de {data_list[3]} para {data_list[4]} no dia {data_list[2]} até {data_list[1]}")
+        print(f"Viagem ID {data_list[0]} de {data_list[3]} para {data_list[4]} no dia {data_list[2]} até {data_list[1]}")
 
 def listar_containers_user(cursor, id_usuario):
     cursor.execute(f"select * from trabalho.container where id_usuario = '{id_usuario}'")
@@ -92,10 +92,7 @@ def cadastra_container(cursor, id_container, peso, conteudo, nota_fiscal, tipo, 
 
 def inserir_container_na_viagem(cursor, id_viagem, id_container, num_container):
     try:
-        cursor.execute(
-            "INSERT INTO trabalho.transporta (id_viagem, id_container) VALUES (%s, %s)",
-            (id_viagem, id_container, num_container)
-        )
+        cursor.execute(f"INSERT INTO trabalho.transporta (id_viagem, id_container, num_container) VALUES ({id_viagem}, {id_container}, NULL)")
         print(f"Container {id_container} adicionado à viagem {id_viagem} com sucesso.")
     except Exception as e:
         print(f"Erro ao adicionar o container à viagem: {e}")
