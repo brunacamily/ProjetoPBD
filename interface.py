@@ -7,7 +7,6 @@ def cadastra_user(cursor, id, nome, email, cpf, cpfCnpj):
         cursor.execute("INSERT INTO projetopbd.usuario (id_user, nome, email, cpf) VALUES (%s, %s, %s, %s)", (id, nome, email, cpf))
     else:
         cursor.execute("INSERT INTO projetopbd.usuario (id_user, nome, email, cnpj) VALUES (%s, %s, %s, %s)", (id, nome, email, cpf))
-
         
 def cadastra_porto(cursor, cidade, tipo):
     cursor.execute(
@@ -27,16 +26,6 @@ def cadastra_navio(cursor, toneladas, status, localizacao):
         (toneladas, status, localizacao)
     )
 
-##Verificar se navio esta livre na data da viagem
-#def cria_viagem(cursor, data_partida, hora_partida, data_chegada, hora_chegada, peso_carga, id_origem, id_destino, id_navio, id_adm):
-#    cursor.execute(
-#        """
-#        INSERT INTO viagem (data_partida, hora_partida, data_chegada, hora_chegada, peso_carga, id_origem, id_destino, id_navio, id_adm) 
-#        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-#        """, 
-#        (data_partida, hora_partida, data_chegada, hora_chegada, peso_carga, id_origem, id_destino, id_navio, id_adm)
-#    )
-
 def finalizar_viagem(cursor, id_viagem, data_chegada):
     cursor.execute(f"UPDATE projetopbd.viagem A SET data_chegada = '{data_chegada}' WHERE A.id_viagem = {id_viagem}")
 
@@ -45,7 +34,22 @@ def historico_todas_viagens(cursor):
     rows = cursor.fetchall()
     for row in rows:
         print(row)
-        
+
+def listar_viagens_nao_comecadas(cursor):
+    cursor.execute("select (E.id_viagem,E.data_chegada, E.data_partida, F.cidade, H.cidade) from trabalho.viagem E inner join trabalho.porto F on E.id_origem = F.id_porto inner join trabalho.porto H on E.id_destino = H.id_porto where CURRENT_DATE < E.data_partida")    
+    rows = cursor.fetchall()
+    print("Viagens que ainda não começaram:")
+    for row in rows:
+        info = row[0].replace('(','').replace(')','')
+        data_list = info.split(',',5)
+        print(f"Viagem de {data_list[3]} para {data_list[4]} no dia {data_list[2]} até {data_list[1]}")
+
+def listar_containers_user(cursor, id_usuario):
+    cursor.execute(f"select * from trabalho.container where id_usuario = '{id_usuario}'")
+    rows = cursor.fetchall()
+    print("Containers do usuário:")
+    for row in rows:
+        print(row)
 #Verifica se o navio estara ocupado em certo intervalo de datas
 #Retorna true se esta livre
 def verificar_status_navio(cursor, id_navio, data_partida, data_chegada):
@@ -89,7 +93,7 @@ def cadastra_container(cursor, id_container, peso, conteudo, nota_fiscal, tipo, 
 def inserir_container_na_viagem(cursor, id_viagem, id_container, num_container):
     try:
         cursor.execute(
-            "INSERT INTO transporta (id_viagem, id_container, num_container) VALUES (%s, %s, %s)",
+            "INSERT INTO trabalho.transporta (id_viagem, id_container) VALUES (%s, %s)",
             (id_viagem, id_container, num_container)
         )
         print(f"Container {id_container} adicionado à viagem {id_viagem} com sucesso.")
@@ -105,7 +109,7 @@ def main_menu(cursor):
         print("3. Cadastrar Administrador")
         print("4. Cadastrar Navio")
         print("5. Cadastrar Container e Inserir em uma Viagem")
-        print("6s. Finalizar Viagem")
+        print("6. Finalizar Viagem")
         print("7. Verificar Status de um Navio")
         print("8. Verificar Status da Frota Completa")
         print("9. Histórico de Todas as Viagens")
@@ -219,6 +223,15 @@ def main_menu(cursor):
                         id_adm = input("ID do Administrador: ")
                         criar_viagem(cursor, data_partida, hora_partida, data_chegada, hora_chegada, peso_carga, id_origem, id_destino, id_adm)
 
+                    case '12':
+                        print("\tColocar container em uma viagem")
+                        id_user = input("ID do usuário: ")
+                        listar_viagens_nao_comecadas(cursor)
+                        listar_containers_user(cursor, id_user)
+                        id_container = input("ID do container: ")
+                        id_viagem = input("ID da viagem para colocar o container: ")
+                        inserir_container_na_viagem(cursor, id_viagem, id_container, 1)
+                    
                     case '0':
                         print("\n\tSaindo")
                         exit()
@@ -230,7 +243,7 @@ try:
     conn = psycopg2.connect(
         dbname="postgres",
         user="postgres",
-        password="26022004",
+        password="leo123",
         host="localhost",
         port="5432"
     )
@@ -239,11 +252,6 @@ try:
     record = cursor.fetchone()
     print("Você está conectado ao - ", record, "\n") 
     main_menu(cursor)
-
-    #Fazer um try catch para inserir em projetopbd.transporta 
-    cursor.execute("insert into projetopbd.transporta (id_viagem, id_container) values (1,2)")
-    cursor.execute("insert into projetopbd.transporta (id_viagem, id_container) values (1,2)")
-
 
     conn.commit()
     cursor.close()

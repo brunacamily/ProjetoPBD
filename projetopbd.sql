@@ -48,7 +48,7 @@ CREATE TABLE viagem(
 	FOREIGN KEY (id_adm) REFERENCES administrador(id_adm));
 
 CREATE TABLE container(
-	id_container SERIAL PRIMARY KEY,
+	id_container int PRIMARY KEY,
 	peso INT not null,
 	conteudo varchar(255) not null,
 	nota_fiscal varchar(255) not null,
