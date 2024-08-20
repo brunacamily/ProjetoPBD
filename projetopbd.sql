@@ -174,13 +174,13 @@ $$;
 INSERT INTO trabalho.administrador (user_adm, password_adm)
 VALUES ('admin', 'admin_password');
 
-INSERT INTO trabalho.usuario (nome, email, cpf, cnpj)
+INSERT INTO trabalho.usuario (id_user,nome, email, cpf, cnpj)
 VALUES 
-('Usuário 1', 'user1@example.com', '11111111111', NULL),
-('Usuário 2', 'user2@example.com', '22222222222', NULL),
-('Usuário 3', 'user3@example.com', '33333333333', NULL),
-('Usuário 4', 'user4@example.com', '44444444444', NULL),
-('Usuário 5', 'user5@example.com', '55555555555', NULL);
+(11,'Usuário 1', 'user1@example.com', '11111111111', NULL),
+(12,'Usuário 2', 'user2@example.com', '22222222222', NULL),
+(13,'Usuário 3', 'user3@example.com', '33333333333', NULL),
+(14,'Usuário 4', 'user4@example.com', '44444444444', NULL),
+(15,'Usuário 5', 'user5@example.com', '55555555555', NULL);
 
 
 INSERT INTO trabalho.container (peso, conteudo, nota_fiscal, tipo, id_usuario)
