@@ -14,7 +14,7 @@ CREATE TABLE administrador(
 	password_adm varchar(255) not null);
 
 CREATE TABLE usuario(
-	id_user SERIAL PRIMARY KEY,
+	id_user INT PRIMARY KEY,
 	nome varchar(255) not null,
 	email varchar(255) not null,
 	cpf varchar(2515),
