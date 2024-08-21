@@ -106,40 +106,30 @@ FOR EACH ROW
 EXECUTE FUNCTION proc_peso_containers();
 --FIM TRIGGER
 
---PROCEDURE proc_conta_containers()
-CREATE OR REPLACE PROCEDURE proc_conta_containers(
-    p_id_viagem INT
-)
-LANGUAGE plpgsql
-AS $$
+-- Função para contar os containers e atualizar o número
+CREATE OR REPLACE FUNCTION func_trg_num_container()
+RETURNS TRIGGER AS $$
 DECLARE
     num_containers INT;
 BEGIN
     -- Contar o número de containers para a viagem especificada
     SELECT COUNT(*) INTO num_containers
     FROM trabalho.transporta
-    WHERE id_viagem = p_id_viagem;
-
+    WHERE id_viagem = NEW.id_viagem;
+    
     -- Atualizar o número de containers para a viagem especificada
     UPDATE trabalho.transporta
     SET num_container = num_containers
-    WHERE id_viagem = p_id_viagem;
-END;
-$$;
---FIM PROCEDURE
-
---FUNCTION chama procedure proc_conta_containers
-CREATE OR REPLACE FUNCTION func_trg_num_container()
-RETURNS TRIGGER AS $$
-BEGIN
-	CALL proc_conta_containers(NEW.id_viagem);
-	RETURN NEW;
+    WHERE id_viagem = NEW.id_viagem
+    AND id_container = NEW.id_container;
+    
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
---FIM FUNCTION
+-- FIM FUNCTION
 
---TRIGGER para depois que for inserido na tabela transporta
-CREATE TRIGGER trg_num_container
+-- Trigger para depois que for inserido na tabela transporta
+CREATE OR REPLACE TRIGGER trg_num_container
 AFTER INSERT 
 ON trabalho.transporta
 FOR EACH ROW 
