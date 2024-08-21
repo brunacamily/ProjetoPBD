@@ -10,8 +10,7 @@ def cadastra_user(cursor, id, nome, email, cpf, cpfCnpj):
         
 def cadastra_porto(cursor, cidade, tipo):
     cursor.execute(
-        "INSERT INTO porto (cidade, tipo) VALUES (%s, %s)", 
-        (cidade, tipo)
+        f"INSERT INTO porto (cidade, tipo) VALUES ('{cidade}', '{tipo}')"
     )
 
 def cadastra_administrador(cursor, user_adm, password_adm):
@@ -82,23 +81,24 @@ def criar_viagem(cursor, data_partida, hora_partida, data_chegada, hora_chegada,
     for row in rows:
         if verificar_status_navio(cursor, row[0], data_partida, data_chegada):
             navios_livres.append(row[0])
-    cursor.excecute(f"insert into trabalho.viagem (data_partida, hora_partida, data_chegada, hora_chegada, peso_carga, id_origem, id_destino, id_navio, id_adm) values ({data_partida}, {hora_partida}, {data_chegada}, {hora_chegada}, {peso_carga}, {id_origem}, {id_destino}, {navios_livres[0]}, {id_adm})")
+    cursor.execute(f"insert into trabalho.viagem (data_partida, hora_partida, data_chegada, hora_chegada, peso_carga, id_origem, id_destino, id_navio, id_adm) values ({data_partida}, {hora_partida}, {data_chegada}, {hora_chegada}, {peso_carga}, {id_origem}, {id_destino}, {navios_livres[0]}, {id_adm})")
 
 def cadastra_container(cursor, id_container, peso, conteudo, nota_fiscal, tipo, id_usuario):
     cursor.execute(
         "INSERT INTO trabalho.container (id_container, peso, conteudo, nota_fiscal, tipo, id_usuario) VALUES (%s, %s, %s, %s, %s, %s)", 
         (id_container, peso, conteudo, nota_fiscal, tipo, id_usuario)
     )
+    conn.commit()
 
 def inserir_container_na_viagem(cursor, id_viagem, id_container, num_container):
-    try:
-        cursor.execute(f"INSERT INTO trabalho.transporta (id_viagem, id_container, num_container) VALUES ({id_viagem}, {id_container}, {num_container})")
-        print(f"Container {id_container} adicionado à viagem {id_viagem} com sucesso.")
-    except Exception as e:
-        print(f"Erro ao adicionar o container à viagem: {e}")
+    #try:
+    cursor.execute(f"insert into trabalho.transporta (id_container, id_viagem) values ({id_container}, {id_viagem})")
+    print(f"Container {id_container} adicionado à viagem {id_viagem} com sucesso.")
+    #except Exception as e:
+    #    print(f"Erro ao adicionar o container à viagem: {e}")
    
 
-def main_menu(cursor):
+def main_menu(cursor, conn):
     while True:
         print("\nMenu:")
         print("1. Cadastrar Usuário")
@@ -135,19 +135,21 @@ def main_menu(cursor):
                                 print("Opção não existe. Tente novamente.")
 
                         cadastra_user(cursor, id, nome, email, cpf, cpfCnpj)
-
+                        conn.commit()
 
                     case '2':
                         print("\tCadrastar Porto:")
                         cidade = input("Cidade: ")
-                        tipo = input("Tipo (refrigerado/não refrigerado): ")
+                        tipo = input("Tipo (maritimo / fluvial): ")
                         cadastra_porto(cursor, cidade, tipo)
+                        conn.commit()
                         
                     case '3':
                         print("\tCadrastar Administrador:")
                         user_adm = input("Nome do Administrador: ")
                         password_adm = input("Senha: ")
                         cadastra_administrador(cursor, user_adm, password_adm)
+                        conn.commit()
                         
                     case '4':
                         print("\tCadrastar Navio:")
@@ -155,6 +157,7 @@ def main_menu(cursor):
                         status = input("Status (em viagem/livre): ")
                         localizacao = input("Localização: ")
                         cadastra_navio(cursor, toneladas, status, localizacao) 
+                        conn.commit()
                         
 
 
@@ -187,6 +190,7 @@ def main_menu(cursor):
                         id_viagem = input("ID da Viagem: ")
                         data_chegada = input("Data de Chegada: ")
                         finalizar_viagem(cursor, id_viagem, data_chegada)  
+                        conn.commit()
                         
                     case '7': 
                         print("\tVerificar Status de um Navio")
@@ -194,19 +198,23 @@ def main_menu(cursor):
                         data_partida = input("Data de Partida: ")
                         data_chegada = input("Data de Chegada: ")
                         verificar_status_navio(cursor, id_navio, data_partida, data_chegada)
+                        conn.commit()
 
                     case '8':
                         print("\tVerificar Status da Frota Completa")
                         verificar_status_frota_completa(cursor)
+                        conn.commit()
 
                     case '9':
                         print("\tHistórico de Todas as Viagens")
                         historico_todas_viagens(cursor)
+                        conn.commit()
 
                     case '10':
                         print("\tHistórico de Aluguéis de um Usuário")
                         id_usuario = input("ID do Usuário: ")
                         historico_alugueis_de_user(cursor, id_usuario)
+                        conn.commit()
 
                     case '11':
                         print("\tCriando Viagem")
@@ -219,6 +227,7 @@ def main_menu(cursor):
                         id_destino = input("ID de Destino: ")
                         id_adm = input("ID do Administrador: ")
                         criar_viagem(cursor, data_partida, hora_partida, data_chegada, hora_chegada, peso_carga, id_origem, id_destino, id_adm)
+                        conn.commit()
 
                     case '12':
                         print("\tColocar container em uma viagem")
@@ -228,6 +237,7 @@ def main_menu(cursor):
                         id_container = input("ID do container: ")
                         id_viagem = input("ID da viagem para colocar o container: ")
                         inserir_container_na_viagem(cursor, id_viagem, id_container, 1)
+                        conn.commit()
                     
                     case '0':
                         print("\n\tSaindo")
@@ -248,9 +258,10 @@ try:
     cursor.execute("SELECT version();")
     record = cursor.fetchone()
     print("Você está conectado ao - ", record, "\n") 
-    main_menu(cursor)
+    #cursor.execute("insert into trabalho.administrador (user_adm, password_adm) values ('Leonardo', 1234)")
 
-    conn.commit()
+    main_menu(cursor, conn)
+
     cursor.close()
     conn.close()
 

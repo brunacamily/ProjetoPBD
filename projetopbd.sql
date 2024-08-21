@@ -91,7 +91,7 @@ BEGIN
     -- Verifica se o peso total dos containers mais o novo container excede o peso suportado pelo navio
     IF (peso_total_containers + peso_container_novo) > peso_navio THEN
         RAISE EXCEPTION 'Peso total dos containers (%s) excede o peso suportado pelo navio (%s), container não adicionado a viagem', (peso_total_containers + peso_container_novo), peso_navio;
-		RETURN OLD;
+		
 	END IF;
     RETURN NEW;
 END;
